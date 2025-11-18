@@ -14,10 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // form submission handlers
     const contactForm = document.getElementById('contact-form');
-    contactForm.addEventListener('submit', handleContactSubmit);
+    if (contactForm) {
+        contactForm.addEventListener('submit', handleContactSubmit);
+    }
 
     const newsletterForm = document.getElementById('newsletter-form');
-    newsletterForm.addEventListener('submit', handleNewsletterSubmit);
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', handleNewsletterSubmit);
+    }
 });
 
 
@@ -28,7 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 async function loadProjects() {
     const grid = document.getElementById('project-grid');
-    
+    if (!grid) return; // Exit if grid isn't on the page
+
     try {
         const response = await fetch(`${API_BASE_URL}/projects`);
         if (!response.ok) {
@@ -53,13 +58,13 @@ async function loadProjects() {
             const placeholderImg = `https://placehold.co/600x400/E2E8F0/94A3B8?text=${encodeURIComponent(project.name)}`;
 
             card.innerHTML = `
-                <img src="${project.imageUrl}" 
-                     alt="${project.name}" 
+                <img src="${escapeHTML(project.imageUrl)}" 
+                     alt="${escapeHTML(project.name)}" 
                      class="w-full h-56 object-cover"
                      onerror="this.src='${placeholderImg}'">
                 <div class="p-6">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-3">${project.name}</h3>
-                    <p class="text-gray-600 mb-6">${project.description}</p>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-3">${escapeHTML(project.name)}</h3>
+                    <p class="text-gray-600 mb-6">${escapeHTML(project.description)}</p>
                     <button class="bg-blue-600 text-white px-5 py-2 rounded-md font-medium hover:bg-blue-700 transition duration-300">
                         Read More
                     </button>
@@ -79,6 +84,7 @@ async function loadProjects() {
  */
 async function loadClients() {
     const grid = document.getElementById('client-grid');
+    if (!grid) return; // Exit if grid isn't on the page
 
     try {
         const response = await fetch(`${API_BASE_URL}/clients`);
@@ -102,14 +108,15 @@ async function loadClients() {
             
             const placeholderImg = `https://placehold.co/100x100/E2E8F0/94A3B8?text=${encodeURIComponent(client.name[0])}`;
 
+            // --- FIXED: Standardized field names ---
             card.innerHTML = `
-                <img src="${client.imageUrl}" 
-                     alt="${client.name}" 
+                <img src="${escapeHTML(client.avatarUrl)}" 
+                     alt="${escapeHTML(client.name)}" 
                      class="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
                      onerror="this.src='${placeholderImg}'">
-                <p class="text-gray-600 text-sm italic mb-4">"${client.description}"</p>
-                <h4 class="text-lg font-bold text-blue-600">${client.name}</h4>
-                <p class="text-gray-500 text-sm">${client.designation}</p>
+                <p class="text-gray-600 text-sm italic mb-4">"${escapeHTML(client.testimonial)}"</p>
+                <h4 class="text-lg font-bold text-blue-600">${escapeHTML(client.name)}</h4>
+                <p class="text-gray-500 text-sm">${escapeHTML(client.company)}</p>
             `;
             grid.appendChild(card);
         });
@@ -146,14 +153,15 @@ async function handleContactSubmit(event) {
             body: JSON.stringify(data),
         });
 
+        const responseText = await response.text(); // Get text response from server
+
         if (!response.ok) {
             // Handle HTTP errors (e.g., 400, 500)
-            const errorText = await response.text();
-            throw new Error(errorText || `HTTP error! status: ${response.status}`);
+            throw new Error(responseText || `HTTP error! status: ${response.status}`);
         }
 
         // 3. Handle success
-        showMessage(messageEl, 'Thank you! We have received your quote request.', false);
+        showMessage(messageEl, responseText, false);
         form.reset(); // Clear the form fields
 
     } catch (error) {
@@ -182,14 +190,15 @@ async function handleNewsletterSubmit(event) {
             body: JSON.stringify({ email: email }), // Send as a JSON object
         });
 
+        const responseText = await response.text(); // Get text response from server
+
         if (!response.ok) {
             // Get the specific error message from the backend (e.g., "already subscribed")
-            const errorText = await response.text();
-            throw new Error(errorText || `HTTP error! status: ${response.status}`);
+            throw new Error(responseText || `HTTP error! status: ${response.status}`);
         }
 
         // Handle success
-        showMessage(messageEl, 'Thank you for subscribing!', false);
+        showMessage(messageEl, responseText, false);
         form.reset();
 
     } catch (error) {
@@ -225,3 +234,22 @@ function showMessage(element, message, isError = false) {
         element.textContent = '';
     }, 5000);
 }
+
+/**
+ * Utility function to escape HTML to prevent XSS.
+ * @param {string} str - The string to escape.
+ *If @returns {string} The escaped string.
+ */
+const escapeHTML = (str) => {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, (match) => {
+        const escape = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+        };
+        return escape[match];
+    });
+};

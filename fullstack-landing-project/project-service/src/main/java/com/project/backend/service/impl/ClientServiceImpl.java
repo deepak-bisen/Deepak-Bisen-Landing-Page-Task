@@ -36,10 +36,9 @@ public class ClientServiceImpl implements ClientService {
         Client client = getClientById(id); // Re-use getById to handle not-found case
 
         client.setName(clientDetails.getName());
-        client.setDescription(clientDetails.getDescription());
-        client.setImageUrl(clientDetails.getImageUrl());
-        client.setDesignation(client.getDesignation());
-
+        client.setAvatarUrl(clientDetails.getAvatarUrl());
+        client.setTestimonial(clientDetails.getTestimonial());
+        client.setCompany(clientDetails.getCompany());
         return clientRepository.save(client);
     }
 

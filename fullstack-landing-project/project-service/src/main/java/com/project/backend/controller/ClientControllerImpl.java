@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/clients") // Base path for all client-related APIs
-public class ClientCotrollerImpl implements ClientController {
+public class ClientControllerImpl implements ClientController { // Fixed class name
 
     @Autowired
     private ClientServiceImpl clientService;

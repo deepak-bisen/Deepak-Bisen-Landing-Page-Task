@@ -2,13 +2,14 @@ package com.project.backend.service.impl;
 
 import com.project.backend.entity.Newsletter;
 import com.project.backend.repository.NewsletterRepository;
+import com.project.backend.service.NewsletterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class NewsletterServiceImpl {
+public class NewsletterServiceImpl implements NewsletterService {
 
     @Autowired
     private NewsletterRepository newsletterRepository;

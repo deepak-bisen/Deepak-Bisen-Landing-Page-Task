@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const projectIdField = document.getElementById('projectId');
 
     // API URL for projects
-    const PROJECTS_API_URL = '/api/projects';
+    const PROJECTS_API_URL = 'http://localhost:8080/api/projects'; // Using full URL
 
     /**
      * Renders the list of projects.
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         projectList.innerHTML = projects.map(project => `
-            <div class="flex items-center justify-between p-4 border rounded-md shadow-sm" data-id="${project.id}">
+            <div class="flex items-center justify-between p-4 border rounded-md shadow-sm" data-id="${project.projectId}">
                 <div>
                     <h4 class="text-lg font-semibold">${escapeHTML(project.name)}</h4>
                     <p class="text-sm text-gray-600">${escapeHTML(project.category)}</p>
@@ -108,11 +108,22 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         
         const formData = new FormData(projectForm);
-        const project = Object.fromEntries(formData.entries());
-        const projectId = project.id;
+        // Create project object, ensuring 'id' field is named 'projectId' for the backend
+        const project = {
+            name: formData.get('name'),
+            imageUrl: formData.get('imageUrl'),
+            description: formData.get('description'),
+            category: formData.get('category')
+        };
+        
+        const projectId = formData.get('id'); // This is the hidden field
         
         const method = projectId ? 'PUT' : 'POST';
         const url = projectId ? `${PROJECTS_API_URL}/${projectId}` : PROJECTS_API_URL;
+
+        if (projectId) {
+            project.projectId = projectId; // Add the id back for update
+        }
 
         try {
             const response = await fetch(url, {
@@ -172,8 +183,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const project = await response.json();
                 
-                // Populate the form
-                projectIdField.value = project.id;
+                // Populate the form - **FIXED: use project.projectId**
+                projectIdField.value = project.projectId; 
                 document.getElementById('projectName').value = project.name;
                 document.getElementById('imageUrl').value = project.imageUrl;
                 document.getElementById('description').value = project.description;
@@ -202,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clientIdField = document.getElementById('clientId');
 
     // API URL for clients
-    const CLIENTS_API_URL = '/api/clients';
+    const CLIENTS_API_URL = 'http://localhost:8080/api/clients'; // Using full URL
 
     /**
      * Renders the list of clients.
@@ -215,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         clientList.innerHTML = clients.map(client => `
-            <div class="flex items-center justify-between p-4 border rounded-md shadow-sm" data-id="${client.id}">
+            <div class="flex items-center justify-between p-4 border rounded-md shadow-sm" data-id="${client.clientId}">
                 <div class="flex items-center space-x-4">
                     <img src="${escapeHTML(client.avatarUrl)}" alt="${escapeHTML(client.name)}" class="w-16 h-16 rounded-full object-cover" onerror="this.src='https://placehold.co/100x100';">
                     <div>
@@ -266,11 +277,21 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         
         const formData = new FormData(clientForm);
-        const client = Object.fromEntries(formData.entries());
-        const clientId = client.id;
+        // Create client object from form
+        const client = {
+            name: formData.get('name'),
+            avatarUrl: formData.get('avatarUrl'),
+            testimonial: formData.get('testimonial'),
+            company: formData.get('company')
+        };
+        const clientId = formData.get('id'); // This is the hidden field
 
         const method = clientId ? 'PUT' : 'POST';
         const url = clientId ? `${CLIENTS_API_URL}/${clientId}` : CLIENTS_API_URL;
+
+        if (clientId) {
+            client.clientId = clientId; // Add the id back for update
+        }
 
         try {
             const response = await fetch(url, {
@@ -330,8 +351,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const client = await response.json();
                 
-                // Populate the form
-                clientIdField.value = client.id;
+                // Populate the form - **FIXED: use client.clientId**
+                clientIdField.value = client.clientId; 
                 document.getElementById('clientName').value = client.name;
                 document.getElementById('avatarUrl').value = client.avatarUrl;
                 document.getElementById('testimonial').value = client.testimonial;
@@ -346,6 +367,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // Handle Cancel Edit
+    clientCancelEditBtn.addEventListener('click', resetClientForm);
+    
+    /**
+     * Utility function to escape HTML to prevent XSS.
+     * @param {string} str - The string to escape.
+     * @returns {string} The escaped string.
+     */
+    const escapeHTML = (str) => {
+        if (!str) return '';
+        return str.replace(/[&<>"']/g, (match) => {
+            const escape = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;',
+            };
+            return escape[match];
+        });
+    };
 
     // --- Initial Data Load ---
     loadProjects();

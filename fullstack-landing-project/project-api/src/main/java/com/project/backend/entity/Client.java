@@ -12,14 +12,14 @@ public class Client {
     private String clientId;
 
     @Column(columnDefinition = "TEXT", nullable = false)
-    private String imageUrl;
+    private String avatarUrl; // Standardized from imageUrl
 
     @Column(nullable = false)
     private String name;
 
     @Column(length = 2000, nullable = false)
-    private String description;
+    private String testimonial; // Standardized from description
 
     @Column(nullable = false)
-    private String designation; // e.g., "CEO, Fancorp"
+    private String company; // Standardized from designation
 }
